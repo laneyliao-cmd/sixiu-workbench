@@ -59,29 +59,46 @@ const Speech = (function(){
   let voices=[];
   function load(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
   if(window.speechSynthesis){ load(); speechSynthesis.onvoiceschanged = load; }
-  function pickVoice(lang){
+  /* 优先选择更自然、标准美式/英式嗓音，避开机械音（旧版只取第一个匹配，常选到劣质嗓音） */
+  const PREF_EN=['samantha','daniel','google us english','microsoft aria online','microsoft aria','microsoft david','arthur','karen','natural','neural','premium','enhanced'];
+  const PREF_ZH=['google','yaoyao','xiaoxiao','huihui','natural','neural','premium','enhanced','yue'];
+  function bestVoice(lang){
     if(!voices.length) load();
-    const want = lang.toLowerCase();
-    let v = voices.find(x=>x.lang.toLowerCase().replace('_','-')===want);
-    if(!v) v = voices.find(x=>x.lang.toLowerCase().startsWith(want.split('-')[0]));
-    return v||null;
+    const base=(lang||'zh').toLowerCase().split('-')[0];
+    const pool=voices.filter(v=>v.lang && v.lang.toLowerCase().startsWith(base));
+    const list=pool.length?pool:voices;
+    const pref=base==='en'?PREF_EN:PREF_ZH;
+    let best=list[0]||null,score=-1;
+    list.forEach(v=>{
+      const n=(v.name||'').toLowerCase();
+      let s=0;
+      pref.forEach((p,i)=>{ if(n.indexOf(p)>=0) s=Math.max(s,pref.length-i); });
+      if(s>score){score=s;best=v;}
+    });
+    return best;
   }
+  function pickVoice(lang){ return bestVoice(lang); }
   function speak(text,opt){
     opt=opt||{};
     if(!window.speechSynthesis){ toast('当前浏览器不支持语音朗读','warn'); return; }
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     u.lang = opt.lang || 'zh-CN';
-    u.rate = opt.rate || 1;
+    u.rate = (opt.rate!=null)?opt.rate:1;
     u.pitch= opt.pitch|| 1;
-    const v=pickVoice(u.lang); if(v) u.voice=v;
+    const v=bestVoice(u.lang); if(v) u.voice=v;
     if(opt.onend) u.onend=opt.onend;
     if(opt.onstart) u.onstart=opt.onstart;
     speechSynthesis.speak(u);
     return u;
   }
   const zh = (t,o)=>speak(t,Object.assign({lang:'zh-CN'},o||{}));
-  const en = (t,o)=>speak(t,Object.assign({lang:(o&&o.uk)?'en-GB':'en-US'},o||{}));
+  const en = (t,o)=>{
+    o=o||{};
+    const st=(typeof Store!=='undefined' && Store.state && Store.state().settings)||{};
+    const rate=(o.rate!=null)?o.rate:(st.enSpeed||1);
+    return speak(t,Object.assign({lang:(o.uk||st.uk)?'en-GB':'en-US',rate:rate},o));
+  };
   function stop(){ if(window.speechSynthesis) speechSynthesis.cancel(); }
   /** 逐句朗读，每句回调高亮 */
   function seq(list,opt){
@@ -94,7 +111,16 @@ const Speech = (function(){
     }
     next();
   }
-  return {speak,zh,en,stop,seq,pickVoice,list:()=>voices};
+  /* iOS 首次朗读常因嗓音列表未加载而用默认劣质音；首次用户交互时预热列表 */
+  function warmup(){
+    if(!window.speechSynthesis) return;
+    load();
+    try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); speechSynthesis.cancel(); }catch(e){}
+  }
+  if(window.speechSynthesis){
+    ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,warmup,{once:true,passive:true}));
+  }
+  return {speak,zh,en,stop,seq,pickVoice,bestVoice,warmup,list:()=>voices};
 })();
 
 /* ---------- 录音 ---------- */
@@ -170,7 +196,7 @@ const Store = (function(){
     inventory:{},       // itemId -> {n, perm}
     gifts:{},           // '3','7','30' -> true
     pet:{ id:'lanlan', name:'蓝蓝', stage:0, exp:0, food:0, mood:80, clean:80, lastCare:null, unlocked:['lanlan'] },
-    settings:{ reminders:['08:30','15:00','19:30'], remindOn:true, autoSpeak:true, uk:false },
+    settings:{ reminders:['08:30','15:00','19:30'], remindOn:true, autoSpeak:true, uk:false, enSpeed:0.95 },
     penaltyLog:{},      // date -> true 已结算
     rescue:{ pending:false, from:null }
   });

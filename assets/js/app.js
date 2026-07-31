@@ -537,9 +537,20 @@ const App = (function(){
         <label class="btnrow" style="gap:6px"><input type="checkbox" id="uk" ${S.settings.uk?'checked':''}> 英语使用<b>英式发音 🇬🇧</b>（不勾选为美式 🇺🇸）</label>
         <button class="btn sm ghost" id="test">🔊 试听</button>
       </div>
-      <div class="muted" style="margin-top:8px">当前可用语音引擎：${(Speech.list()||[]).length} 个。若无中文/英文语音，请在系统设置中安装对应语音包。</div>`;
+      <div class="btnrow" style="margin-top:12px;align-items:center">
+        <label class="fl" style="font-size:14px">英语朗读语速</label>
+        <select id="enSp" class="inp" style="max-width:180px">
+          <option value="0.8">慢速（适合跟读）</option>
+          <option value="0.95">较慢（推荐）</option>
+          <option value="1">标准</option>
+        </select>
+        <span class="muted" style="font-size:12px">豆包音色上线后亦可在此切换</span>
+      </div>
+      <div class="muted" style="margin-top:8px">当前可用语音引擎：${(Speech.list()||[]).length} 个。若无中文/英文语音，请在系统设置中安装对应语音包。iOS 设备请在「设置 → 辅助功能 → 语音内容 → 语音」中下载英文嗓音。</div>`;
     c.appendChild(b3);
     b3.querySelector('#uk').onchange=e=>{S.settings.uk=e.target.checked;Store.save();};
+    const enSp=b3.querySelector('#enSp'); enSp.value=String(S.settings.enSpeed||0.95);
+    enSp.onchange=()=>{S.settings.enSpeed=parseFloat(enSp.value)||0.95;Store.save();toast('语速已保存','ok');};
     b3.querySelector('#test').onclick=()=>{Speech.zh('你好，我们开始今天的学习吧。');setTimeout(()=>Speech.en('Hello! Let us start today\'s lesson.',{uk:S.settings.uk}),2200);};
 
     const b4=el('div','card');
