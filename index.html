@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3f9df5">
+  <title>专属学习工作台 · 四升五 · 2026秋新版</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <!-- 应用骨架：左侧收窄导航 + 右侧宽内容区 -->
+  <div class="app">
+    <!-- 左侧导航 -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">📚</div>
+        <div class="brand-txt">
+          <strong>专属学习工作台</strong>
+          <span>四升五 · 2026秋新版</span>
+        </div>
+      </div>
+      <nav class="navlist" id="navlist"><!-- 由 app.js 动态渲染 --></nav>
+      <div class="nav-foot">
+        <div class="nav-progress" id="navProg"><span>今日 0/10</span><span>0%</span></div>
+        <div class="bar"><i id="navBar" style="width:0%"></i></div>
+      </div>
+    </aside>
+
+    <!-- 右侧内容 -->
+    <div class="main">
+      <header class="topbar">
+        <button class="iconbtn menu-toggle" type="button" aria-label="打开菜单">☰</button>
+        <h1 id="pageTitle">今日总览</h1>
+        <span class="sub" id="pageSub">广东·中山 · 四升五暑期30天预习计划 · 2026秋新版教材</span>
+        <div class="spacer"></div>
+        <span class="chip" id="topPoints">⭐ 0</span>
+        <span class="chip warm" id="topStreak">🔥 连续 0 天</span>
+        <span class="chip green" id="topDay">第 1/30 天</span>
+      </header>
+      <main id="content" class="content"><!-- 由 App.go 渲染 --></main>
+    </div>
+  </div>
+
+  <!-- 移动端抽屉遮罩 -->
+  <div class="mask-mobile"></div>
+
+  <!-- 脚本加载顺序：数据 → 核心引擎 → 第三方库(二维码/扫码/压缩) → 传档 → 学科模块 → 应用入口 -->
+  <script src="assets/js/data-chinese.js"></script>
+  <script src="assets/js/data-math.js"></script>
+  <script src="assets/js/data-english.js"></script>
+  <script src="assets/js/core.js"></script>
+  <script src="assets/js/lib/qrcode.min.js"></script>
+  <script src="assets/js/lib/jsQR.min.js"></script>
+  <script src="assets/js/lib/lz-string.min.js"></script>
+  <script src="assets/js/transfer.js"></script>
+  <script src="assets/js/modules-chinese.js"></script>
+  <script src="assets/js/modules-math.js"></script>
+  <script src="assets/js/modules-english.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
